@@ -29,7 +29,7 @@ def main():
     print('\n [STEP 3/7] Setting up data pipeline...')
     data_manager = DataManager(config)
     data_manager.load_datasets()
-    train_loader, val_loader, test_loader = data_manager.create_datalaoders()
+    train_loader, val_loader, test_loader = data_manager.create_dataloaders()
 
     #Building model
     print("\n[STEP 4/7] Building transfer learning model...")
@@ -78,7 +78,7 @@ def main():
     print("   PIPELINE COMPLETED SUCCESSFULLY! ✓")
     print("="*70)
     print(f"\nFinal Results:")
-    print(f"  Best Validation Accuracy: {trainer.best_vall_acc:.2f}%")
+    print(f"  Best Validation Accuracy: {trainer.best_val_acc:.2f}%")
     print(f"  Test Accuracy: {test_results['accuracy']:.2f}%")
     print(f"\nSaved Files:")
     print(f"  Model checkpoint: {config.checkpoint_dir}/")
