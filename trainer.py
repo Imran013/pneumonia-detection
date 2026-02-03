@@ -7,18 +7,8 @@ import time
 import os
 import numpy as np
 
-class Config:
-    """Placeholder"""
-    pass
-
-class Utils:
-    """Placeholder"""
-    @staticmethod
-    def format_time(seconds):
-        return f"{int(seconds)}s"
-
 class Trainer:
-    """Enhanced Trainer with advanced techniques"""
+    """Enhanced Trainer with class weights for balanced training"""
     
     def __init__(
         self,
@@ -36,9 +26,56 @@ class Trainer:
 
         self.model.to(config.device)
 
-        # Loss with label smoothing
+        
+        
+        # Calculate class weights from training dataset
+        # Get actual class distribution from dataloader
+        try:
+            # Try to get from dataset
+            if hasattr(train_loader.dataset, 'targets'):
+                targets = train_loader.dataset.targets
+            elif hasattr(train_loader.dataset, 'samples'):
+                targets = [s[1] for s in train_loader.dataset.samples]
+            else:
+                # Default values if can't get from dataset
+                # NORMAL: 1140, PNEUMONIA: 3294 (from your dataset)
+                targets = [0]*1140 + [1]*3294
+            
+            # Count classes
+            class_counts = torch.bincount(torch.tensor(targets))
+            class_counts = class_counts.float()
+            
+        except Exception as e:
+            print(f"⚠️ Could not get class distribution from dataset, using defaults")
+            class_counts = torch.tensor([1140.0, 3294.0])
+        
+        total_samples = class_counts.sum()
+        num_classes = len(class_counts)
+        
+        # Inverse frequency weighting
+        # weight_i = total_samples / (num_classes * count_i)
+        class_weights = total_samples / (num_classes * class_counts)
+        class_weights = class_weights.to(config.device)
+        
+        print("\n" + "="*70)
+        print("⚖️  CLASS WEIGHTS (Balanced Training)")
+        print("="*70)
+        print(f"  Class distribution:")
+        print(f"    NORMAL:     {int(class_counts[0]):,} samples")
+        print(f"    PNEUMONIA:  {int(class_counts[1]):,} samples")
+        print(f"\n  Calculated weights:")
+        print(f"    NORMAL:     {class_weights[0]:.4f}")
+        print(f"    PNEUMONIA:  {class_weights[1]:.4f}")
+        print(f"    Ratio:      {class_weights[0]/class_weights[1]:.2f}x")
+        print(f"\n  💡 NORMAL class will receive {class_weights[0]/class_weights[1]:.2f}x more importance in loss")
+        
+        # ═══════════════════════════════════════════════════
+        # LOSS FUNCTION with Class Weights
+        # ═══════════════════════════════════════════════════
+        
         self.criterion = nn.CrossEntropyLoss(
-            label_smoothing=getattr(config, 'label_smoothing', 0.1)
+            label_smoothing=getattr(config, 'label_smoothing', 0.1),
+            weight=class_weights  # ✅ CLASS WEIGHTS APPLIED
         )
 
         self.optimizer = self._create_optimizer()
@@ -119,16 +156,6 @@ class Trainer:
                 T_max=self.config.num_epochs,
                 eta_min=getattr(self.config, 'min_lr', 1e-6)
             )
-        elif self.config.scheduler_type.lower() == 'cosine_warmup':
-            # Cosine with warm-up
-            warmup_epochs = getattr(self.config, 'warmup_epochs', 3)
-            return optim.lr_scheduler.OneCycleLR(
-                self.optimizer,
-                max_lr=self.config.learning_rate,
-                epochs=self.config.num_epochs,
-                steps_per_epoch=len(self.train_loader),
-                pct_start=warmup_epochs / self.config.num_epochs
-            )
         else:
             raise ValueError(f'Unknown scheduler: {self.config.scheduler_type}')
 
@@ -198,7 +225,6 @@ class Trainer:
             # Apply MixUp or CutMix randomly
             use_mixup = False
             if self.use_mixup and self.use_cutmix:
-                # 50% chance for each
                 if np.random.rand() < 0.5:
                     inputs, labels_a, labels_b, lam = self._mixup_data(inputs, labels)
                     use_mixup = True
@@ -304,7 +330,7 @@ class Trainer:
             'loss': val_loss,
             'accuracy': val_acc
         }
-
+    
     def save_checkpoint(self, filepath: str) -> None:
         """Save checkpoint"""
         checkpoint = {
@@ -339,7 +365,7 @@ class Trainer:
             # Train
             train_metrics = self.train_epoch()
 
-            # Validate (with EMA if available)
+            # Validate
             val_metrics = self.validate(use_ema=(self.model_ema is not None))
 
             # Update history
@@ -352,6 +378,7 @@ class Trainer:
             self.history['learning_rates'].append(current_lr)
 
             # Print summary
+            from utils import Utils
             print(f"\n📊 Epoch {self.current_epoch} Summary:")
             print(f"  Train Loss: {train_metrics['loss']:.4f} | Train Acc: {train_metrics['accuracy']:.2f}%")
             print(f"  Val Loss:   {val_metrics['loss']:.4f} | Val Acc:   {val_metrics['accuracy']:.2f}%")
@@ -374,8 +401,7 @@ class Trainer:
 
             # Learning rate scheduler
             if self.scheduler:
-                if self.config.scheduler_type.lower() != 'cosine_warmup':
-                    self.scheduler.step()
+                self.scheduler.step()
 
             # Early stopping
             if self.epochs_without_improvement >= self.config.early_stopping_patience:
