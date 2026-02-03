@@ -63,7 +63,7 @@ class Config:
     normalize_std: Tuple[float, float, float] = (0.229, 0.224, 0.225)
 
     #Training strategy
-    gradient_accumlation_steps: int = 1
+    gradient_accumulation_steps: int = 1
     early_stopping_patience: int = 10
     save_best_only: bool = True
 
