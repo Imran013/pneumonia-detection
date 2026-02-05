@@ -76,7 +76,7 @@ class Config:
     ema_decay: float = 0.999
 
     #Device
-    device: str = 'cpu'
+    device: str = 'cuda'
 
     #Logging
     log_interval: int = 10

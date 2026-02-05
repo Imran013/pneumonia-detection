@@ -9,11 +9,6 @@ checkpoints/
 *.pt
 *.ckpt
 
-# Logs və plots
-logs/
-plots/
-*.png
-*.jpg
 
 # Python
 __pycache__/
