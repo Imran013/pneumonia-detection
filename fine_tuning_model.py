@@ -38,7 +38,7 @@ class PneumoniaCNN(nn.Module):
             nn.Dropout(p=config.dropout_rate),
             nn.Linear(num_features, 512),
             nn.ReLU(inplace=True),
-            nn.BatchNorm1d(512),  # ➕ Batch norm əlavə edildi
+            nn.BatchNorm1d(512),  # 
             nn.Dropout(p=config.dropout_rate),
             nn.Linear(512, config.num_classes)
         )
@@ -51,7 +51,7 @@ class PneumoniaCNN(nn.Module):
             param.requires_grad = False
 
         trainable = sum(p.numel() for p in self.backbone.parameters() if p.requires_grad)
-        total = sum(p.numel() for p in self.backbone.parameters())  # 🔧 FIX: numel() əlavə edildi
+        total = sum(p.numel() for p in self.backbone.parameters())  
         frozen = total - trainable
 
         print(f"  ✅ Trainable params: {trainable:,}")
@@ -135,10 +135,10 @@ class FineTuningOptimizer:
                     pretrained_params.append(param)
 
         # Differential learning rates
-        optimizer = torch.optim.AdamW([  # ✨ AdamW istifadə edildi (better than Adam)
+        optimizer = torch.optim.AdamW([  
             {
                 'params': pretrained_params,
-                'lr': config.learning_rate * 0.1,  # 10x kiçik LR
+                'lr': config.learning_rate * 0.1,  
                 'name': 'pretrained_layers'
             },
             {
