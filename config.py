@@ -14,9 +14,9 @@ class Config:
 
     #Hyperparameters
     batch_size: int = 32
-    num_epochs: int = 50
-    learning_rate: float = 1e-3
-    weight_decay: float = 1e-3
+    num_epochs: int = 30
+    learning_rate: float = 3e-4
+    weight_decay: float = 1e-4
 
     #Optimizer
     optimizer_type: str = 'adam'
@@ -25,52 +25,75 @@ class Config:
 
     #Learning rate scheduler
     use_scheduler: bool = True
-    scheduler_type: str = 'step'
+    scheduler_type: str = 'cosine'
     step_size: int = 7
     gamma: float = 0.1
+    warmup_epochs: int = 3
+    min_lr: float = 1e-6
+
 
     #Regularization
-    dropout_rate: float = 0.5
+    dropout_rate: float = 0.3
     use_batch_norm: bool = True
+    label_smoothing: float = 0.1
+    mixup_alpha: float = 0.2
+    cutmix_alpha: float = 1.0
+    use_mixup: bool = True
+    use_cutmix: bool = True
+
 
     #Data loading
-    num_workers: int = 0
-    pin_memory: bool = False
+    num_workers: int = 4
+    pin_memory: bool = True
 
-    #Data Augmentation (standard - both classes)
+    #Data Augmentation (standard - PNEUMONIA class)
     use_augmentation: bool = True
-    horizontal_flip_prob: float = 0.6
-    rotation_degrees: float = 15
-    color_jitter: Tuple[float, float] = (0.2, 0.2)
+    horizontal_flip_prob: float = 0.5
+    rotation_degrees: float = 20
+    color_jitter: Tuple[float, float, float, float] = (0.2, 0.2, 0.1, 0.1)
+    random_affine: bool = True
+    random_perspective: bool = True
+    random_erasing_prob: float = 0.2
+    gaussian_blur_prob: float = 0.1
 
     #Data Augmentation (aggressive - NORMAL class only)
     normal_rotation_degrees: float = 30
-    normal_color_jitter: Tuple[float, float, float, float] = (0.3, 0.3, 0.2, 0.1)
-    normal_random_affine_degrees: float = 20
-    normal_random_affine_translate: Tuple[float, float] = (0.1, 0.1)
-    normal_random_affine_scale: Tuple[float, float] = (0.85, 1.15)
-    normal_perspective_prob: float = 0.3
+    normal_color_jitter: Tuple[float, float, float, float] = (0.3, 0.3, 0.2, 0.15)
+    normal_random_affine_degrees: float = 25
+    normal_random_affine_translate: Tuple[float, float] = (0.15, 0.15)
+    normal_random_affine_scale: Tuple[float, float] = (0.8, 1.2)
+    normal_random_affine_shear: float = 10
+    normal_perspective_prob: float = 0.4
+    normal_perspective_distortion: float = 0.25
     normal_gaussian_blur_kernel: int = 3
-    normal_random_erasing_prob: float = 0.2
+    normal_random_erasing_prob: float = 0.3
+
+    #Balanced sampling
+    use_weighted_sampler: bool = True
 
     # Normalization (ImageNet statistics)
     normalize_mean: Tuple[float, float, float] = (0.485, 0.456, 0.406)
     normalize_std: Tuple[float, float, float] = (0.229, 0.224, 0.225)
 
     #Training strategy
-    gradient_accumulation_steps: int = 2
-    early_stopping_patience: int = 20
+    gradient_accumulation_steps: int = 1
+    early_stopping_patience: int = 10
     save_best_only: bool = True
-    label_smoothing: float = 0.1
 
-    #Balanced sampling
-    use_weighted_sampler: bool = True
+    #Gradient clipping
+    use_gradient_clipping: bool = True
+    max_grad_norm: float = 1.0
+
+    #EMA
+    use_ema: bool = True
+    ema_decay: float = 0.999
 
     #Device
     device: str = 'cuda'
 
     #Logging
     log_interval: int = 10
+    save_interval: int = 5
 
     #Random seed
     seed: int = 42
@@ -100,4 +123,4 @@ class Config:
             if not os.path.exists(path):
                 raise ValueError(f'Directory not found {path}')
             
-        print('Configuration validated')
+        print('Configration validated')
