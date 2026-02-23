@@ -14,7 +14,7 @@ class Config:
 
     #Hyperparameters
     batch_size: int = 16
-    num_epochs: int = 10
+    num_epochs: int = 50
     learning_rate: float = 1e-3
     weight_decay: float = 1e-3
 
@@ -67,7 +67,7 @@ class Config:
     use_weighted_sampler: bool = True
 
     #Device
-    device: str = 'cpu'
+    device: str = 'cuda'
 
     #Logging
     log_interval: int = 10
