@@ -13,7 +13,7 @@ class Config:
     in_channels: int = 3
 
     #Hyperparameters
-    batch_size: int = 16
+    batch_size: int = 32
     num_epochs: int = 50
     learning_rate: float = 1e-3
     weight_decay: float = 1e-3
