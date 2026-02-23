@@ -30,7 +30,7 @@ class Config:
     gamma: float = 0.1
 
     #Regularization
-    dropout_rate: float = 0.6
+    dropout_rate: float = 0.5
     use_batch_norm: bool = True
 
     #Data loading
@@ -59,7 +59,7 @@ class Config:
 
     #Training strategy
     gradient_accumulation_steps: int = 2
-    early_stopping_patience: int = 5
+    early_stopping_patience: int = 20
     save_best_only: bool = True
     label_smoothing: float = 0.1
 
