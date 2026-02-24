@@ -198,7 +198,13 @@ class ModelService:
         probs_np = probabilities.cpu().numpy()[0]
         
         # Get prediction
-        predicted_idx = int(torch.argmax(probabilities, dim=1).item())
+        PNEUMONIA_THRESHOLD = 0.70
+
+        pneumonia_prob = float(probs_np[1])
+        if pneumonia_prob >= PNEUMONIA_THRESHOLD:
+            predicted_idx = 1  # PNEUMONIA
+        else:
+            predicted_idx = 0  # NORMAL
         predicted_class = config.CLASS_NAMES[predicted_idx]
         confidence = float(probs_np[predicted_idx]) * 100
         
